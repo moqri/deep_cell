@@ -13,18 +13,38 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from scipy.ndimage.filters import gaussian_filter
-
+from sklearn.model_selection import train_test_split
 from numpy import savetxt
 
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Activation, Flatten
+from keras.layers import Convolution2D, MaxPooling2D
+from keras.utils import np_utils
+from keras.datasets import mnist
+
+import keras
+from keras.datasets import mnist
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Flatten
+from keras.layers import MaxPooling2D
+from keras import backend as K
+from keras.models import Model
+
+# load the data 
 folder='C:/CS230/dendritic'
-expressions_url='https://mousescexpression.s3.amazonaws.com/dendritic_cell.h5'
+#expressions_url='https://mousescexpression.s3.amazonaws.com/dendritic_cell.h5'
 
 
 genes= pd.read_table(folder+"/genes.txt",index_col=1,header=None,names=['gene', 'id'],delimiter=' ')
 genes.head()
 
 
+
+#load the matrix
 expression_df = pd.read_hdf(folder+"/exprMatrix.h5",index_col=0)
+
+#clean the data
+
 expression_df.index.rename('cell_id',inplace=1)
 expression_df.shape
 
@@ -51,6 +71,11 @@ expression_df.head()
 
 
 expression_df=(100*expression_df.transpose() / expression_df.sum(1)).round(2).transpose()
+
+"""
+
+# sanity check
+
 expression_df
 
 
@@ -79,10 +104,7 @@ ax.set_xticklabels(
 );
 
 
-def myplot(x, y, s, bins=1000):
-    heatmap, xedges, yedges = np.histogram2d(x, y, bins=bins)
-    heatmap = gaussian_filter(heatmap, sigma=s)
-    return heatmap.T        
+     
         
 gene_a='tmsb4x'
 gene_b='rpl41'
@@ -100,7 +122,13 @@ d=d[d[gene_a]*d[gene_b]>1]
 
 x=np.log2(d+1)[gene_a].values
 y=np.log2(d+1)[gene_b].values   
+"""
 
+
+def myplot(x, y, s, bins=1000):
+    heatmap, xedges, yedges = np.histogram2d(x, y, bins=bins)
+    heatmap = gaussian_filter(heatmap, sigma=s)
+    return heatmap.T   
 
 def generate_data(expression_df,pairs,y_values,s=16):
     
@@ -110,15 +138,14 @@ def generate_data(expression_df,pairs,y_values,s=16):
     expression_df = expression_df.loc[:,~expression_df.columns.duplicated()]
     X=[]
     y_out=[]
-    
     for pair,k in zip(pairs,y_values):
         
-        
+        #if len(X)>40000:
+        #    break
         
         gene_a=pair[0]  
         gene_b=pair[1]
         if gene_a in expression_df and gene_b in expression_df :
-            
             d=expression_df[[gene_a,gene_b]]
             d=d[d[gene_a]*d[gene_b]>0.05]
         
@@ -133,27 +160,28 @@ def generate_data(expression_df,pairs,y_values,s=16):
                 else:
                     
                       
-                    img = myplot(x, y, s,bins=200)
-                
-                
+                    img = myplot(x, y, s,bins=150)
+                    
+
                     X.append(img)
                     y_out.append(k)
-                    plt.imsave('X_'+gene_a+'_'+gene_b+'_.jpg',img ,origin='lower', cmap=cm.jet)
-                    savetxt('X_'+gene_a+'_'+gene_b+'_.txt', img, delimiter=',')
                     
-                    savetxt('y_'+gene_a+'_'+gene_b+'_.txt', np.array([k]), delimiter=',')
+                    #plt.imsave('X_'+gene_a+'_'+gene_b+'_.jpg',img ,origin='lower', cmap=cm.jet)
+                    #savetxt('X_'+gene_a+'_'+gene_b+'_.txt', img, delimiter=',')
+                    
+                    #savetxt('y_'+gene_a+'_'+gene_b+'_.txt', np.array([k]), delimiter=',')
                     
             else:
                 
-                    img = myplot(x, y, s,bins=200)
+                    img = myplot(x, y, s,bins=150)
                 
-                
+                    #print(img.shape)
                     X.append(img)
                     y_out.append(k)
-                    plt.imsave('X_'+gene_a+'_'+gene_b+'_.jpg',img ,origin='lower', cmap=cm.jet)
-                    savetxt('X_'+gene_a+'_'+gene_b+'_.txt', img, delimiter=',')
+                    #plt.imsave('X_'+gene_a+'_'+gene_b+'_.jpg',img ,origin='lower', cmap=cm.jet)
+                    #savetxt('X_'+gene_a+'_'+gene_b+'_.txt', img, delimiter=',')
                     
-                    savetxt('y_'+gene_a+'_'+gene_b+'_.txt', np.array([k]), delimiter=',')                
+                    #savetxt('y_'+gene_a+'_'+gene_b+'_.txt', np.array([k]), delimiter=',')                
                 
                     #X.append(img)
                     #y_out.append(k)                
@@ -180,10 +208,23 @@ def load_point_cloud_from_hd(path):
      return np.array(entiregraph),y
 
 
+  
+
+
+
 pairs,y_=load_point_cloud_from_hd("C:/CS230/dendritic_gene_pairs_200.txt")
 
-generate_data(expression_df,pairs,y_,s=16)
+X,y=generate_data(expression_df,pairs,y_,s=16)
 
+
+
+import pickle
+
+with open('C:/CS230/X_Data_all.pkl','wb') as f:
+    pickle.dump(X, f)
+
+with open('C:/CS230/y_Data_all.pkl','wb') as f:
+    pickle.dump(y, f)
 
 
 
