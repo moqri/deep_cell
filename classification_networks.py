@@ -25,6 +25,12 @@ from keras.layers import Dense, Dropout, Flatten
 from keras.layers import MaxPooling2D
 from keras import backend as K
 from keras.models import Model
+
+from sklearn.model_selection import train_test_split
+
+
+import pickle
+
 #from keras.layers import Input, Dense
 
 import numpy as np
@@ -122,7 +128,7 @@ def train_model(model, x_train, y_train,x_test, y_test, batch_size=128,epochs=30
                   optimizer=keras.optimizers.Adadelta(),
                   metrics=['accuracy'])
     print("training the model")
-    model.fit(x_train, y_train,
+    history=model.fit(x_train, y_train,
               batch_size=batch_size,
               epochs=epochs,
               verbose=1,
@@ -131,6 +137,7 @@ def train_model(model, x_train, y_train,x_test, y_test, batch_size=128,epochs=30
     score = model.evaluate(x_test, y_test, verbose=0)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
+    return history
     
     
 
@@ -142,36 +149,31 @@ the following few just loads mnist dataset for testing purposes.
 """    
  
 
-def give_mnist():
-        
+
+def prepare_data(X,y):        
     
-    #img_rows, img_cols = 28, 28
+    img_rows, img_cols = 150, 150
     
     # the data, split between train and test sets
-    (x_train, y_train), (x_test, y_test) = mnist.load_data()[:10000]
+    x_train, x_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=42)
 
-    if K.image_data_format() == 'channels_first':
-        x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
-        x_test = x_test.reshape(x_test.shape[0], 1, img_rows, img_cols)
-        input_shape = (1, img_rows, img_cols)
-    else:
-        x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
-        x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
-        input_shape = (img_rows, img_cols, 1)
+
+    x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
+    x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
 
     x_train = x_train.astype('float32')
     x_test = x_test.astype('float32')
-    x_train /= 255
-    x_test /= 255
+    x_train /= 0.49434793151473155
+    x_test /= 0.49434793151473155
     print('x_train shape:', x_train.shape)
     print(x_train.shape[0], 'train samples')
     print(x_test.shape[0], 'test samples')
     
     # convert class vectors to binary class matrices
-    y_train = keras.utils.to_categorical(y_train, 10)
-    y_test = keras.utils.to_categorical(y_test, 10)
+    y_train = keras.utils.to_categorical(y_train, 2)
+    y_test = keras.utils.to_categorical(y_test, 2)
     
-    return x_train, y_train, x_test, y_test
+    return x_train, y_train, x_test, y_test   
     
 
 
@@ -184,22 +186,40 @@ the following can be changed as see fit
 # pipeline 
 
 #(1) load the data    
-x_train, y_train, x_test, y_test=give_mnist()
+
+
+
+with open('C:/CS230/deep_cell/X_Data_all.pkl','rb') as f:
+    X = pickle.load(f)
+    print(X.shape)
+
+with open('C:/CS230/deep_cell/y_Data_all.pkl','rb') as f:
+    y = pickle.load(f)
+    print(y.shape)
+
+
+X1=X[:2000]
+y1=y[:2000]
+
+x_train, y_train, x_test, y_test = prepare_data(X1,y1)
 
 
 #(2) define the model   
 
-#model=paper_model(10,shape_input_=(28, 28, 1))
 
-model=define_model_1(num_classes=10,shape_input=(28, 28, 1))
+model=define_model_1(num_classes=2,shape_input=(150, 150, 1))
 
 
 
 #(3) fit the model   
 
-train_model(model, x_train, y_train,x_test, y_test)
+train_model(model, x_train, y_train,x_test, y_test,batch_size=128,epochs=300)
 
 
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+imgplot = plt.imshow(x_train[2].reshape(150,150))
+plt.show()
 
 
 
