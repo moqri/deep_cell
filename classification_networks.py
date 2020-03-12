@@ -72,9 +72,9 @@ def define_model_2(num_classes=3,shape_input=(32, 32, 1)):
 
     x=Conv2D(32, (3, 3), activation='relu')(x)
    
-    x=Conv2D(64, (3, 3), activation='relu')(x)
+    x=Conv2D(64, (9, 9), activation='relu')(x)
   
-    x=Conv2D(128, (3, 3), activation='relu')(x)    
+    x=Conv2D(128, (17, 17), activation='relu')(x)    
     x=MaxPooling2D(pool_size=(2, 2))(x)
     x=Dropout(0.25)(x)    
 
@@ -88,9 +88,9 @@ def define_model_2(num_classes=3,shape_input=(32, 32, 1)):
     
     return model
 
-def paper_model(num_classes,shape_input_=(32, 32, 1)):
+def define_model_3(num_classes,shape_input=(32, 32, 1)):
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), padding='same',input_shape=shape_input_))
+    model.add(Conv2D(32, (3, 3), padding='same',input_shape=shape_input))
     model.add(Activation('relu'))
     model.add(Conv2D(32, (3, 3)))
     model.add(Activation('relu'))
@@ -210,11 +210,11 @@ the following can be changed as see fit
 
 with open('C:/CS230/X_Data_all.pkl','rb') as f:
     X_ = pickle.load(f)
-    print(X.shape)
+    print(X_.shape)
 
 with open('C:/CS230/y_Data_all.pkl','rb') as f:
     y_ = pickle.load(f)
-    print(y.shape)
+    print(y_.shape)
 
 
 
@@ -225,7 +225,7 @@ x_train, y_train, x_test, y_test = prepare_data(X_,y_)
 #(2) define the model   
 
 
-model=define_model_1(num_classes=2,shape_input=(150, 150, 1))
+model=define_model_3(num_classes=2,shape_input=(150, 150, 1))
 
 
 # Fit the model
@@ -243,6 +243,21 @@ refs:
 https://machinelearningmastery.com/how-to-calculate-precision-recall-f1-and-more-for-deep-learning-models/
 """
 
+
+"""
+
+
+model=define_model_1(num_classes=2,shape_input=(150, 150, 1))
+
+
+
+
+
+history=train_model(model, x_train, y_train,x_test, y_test, batch_size=32,epochs=30,l_r=0.05,beta1=0.9,beta2=0.999)
+
+
+
+"""
 
 
 
