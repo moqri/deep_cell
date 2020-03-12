@@ -206,6 +206,7 @@ the following can be changed as see fit
 
 #(1) load the data    
 
+folder='C:/CS230/dendritic'
 
 
 with open('C:/CS230/X_Data_all.pkl','rb') as f:
@@ -234,7 +235,7 @@ model=define_model_3(num_classes=2,shape_input=(150, 150, 1))
 
 #(3) fit the model   
 
-history=train_model(model, x_train, y_train,x_test, y_test, batch_size=32,epochs=30,l_r=0.05,beta1=0.9,beta2=0.999)
+history=train_model(model, x_train, y_train,x_test, y_test, batch_size=64,epochs=30,l_r=0.005,beta1=0.9,beta2=0.999)
 
 
 
