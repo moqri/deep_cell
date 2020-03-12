@@ -121,11 +121,11 @@ def paper_model(num_classes,shape_input_=(32, 32, 1)):
     return model
 
 
-def train_model(model, x_train, y_train,x_test, y_test, batch_size=128,epochs=30):
+def train_model(model, x_train, y_train,x_test, y_test, batch_size=128,epochs=30,l_r=0.05,beta1=0.9,beta2=0.999):
 
 
     model.compile(loss=keras.losses.categorical_crossentropy,
-                  optimizer=keras.optimizers.Adadelta(),
+                  optimizer=keras.optimizers.Adam(lr=l_r,beta_1=beta1,beta_2=beta2),
                   metrics=['accuracy'])
     print("training the model")
     history=model.fit(x_train, y_train,
@@ -133,6 +133,25 @@ def train_model(model, x_train, y_train,x_test, y_test, batch_size=128,epochs=30
               epochs=epochs,
               verbose=1,
               validation_data=(x_test, y_test))
+
+    print(history.history.keys())
+    # summarize history for accuracy
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
+    # summarize history for loss
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
+    
     print("done training the model")
     score = model.evaluate(x_test, y_test, verbose=0)
     print('Test loss:', score[0])
@@ -150,12 +169,12 @@ the following few just loads mnist dataset for testing purposes.
  
 
 
-def prepare_data(X,y):        
+def prepare_data(X,y,test_size=0.05):        
     
     img_rows, img_cols = 150, 150
     
     # the data, split between train and test sets
-    x_train, x_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=42)
+    x_train, x_test, y_train, y_test = train_test_split( X, y, test_size=test_size, random_state=42)
 
 
     x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
@@ -163,8 +182,8 @@ def prepare_data(X,y):
 
     x_train = x_train.astype('float32')
     x_test = x_test.astype('float32')
-    x_train /= 0.49434793151473155
-    x_test /= 0.49434793151473155
+    x_train 
+    x_test 
     print('x_train shape:', x_train.shape)
     print(x_train.shape[0], 'train samples')
     print(x_test.shape[0], 'test samples')
@@ -189,19 +208,18 @@ the following can be changed as see fit
 
 
 
-with open('C:/CS230/deep_cell/X_Data_all.pkl','rb') as f:
-    X = pickle.load(f)
+with open('C:/CS230/X_Data_all.pkl','rb') as f:
+    X_ = pickle.load(f)
     print(X.shape)
 
-with open('C:/CS230/deep_cell/y_Data_all.pkl','rb') as f:
-    y = pickle.load(f)
+with open('C:/CS230/y_Data_all.pkl','rb') as f:
+    y_ = pickle.load(f)
     print(y.shape)
 
 
-X1=X[:2000]
-y1=y[:2000]
 
-x_train, y_train, x_test, y_test = prepare_data(X1,y1)
+
+x_train, y_train, x_test, y_test = prepare_data(X_,y_)
 
 
 #(2) define the model   
@@ -210,19 +228,20 @@ x_train, y_train, x_test, y_test = prepare_data(X1,y1)
 model=define_model_1(num_classes=2,shape_input=(150, 150, 1))
 
 
+# Fit the model
+
+
 
 #(3) fit the model   
 
-train_model(model, x_train, y_train,x_test, y_test,batch_size=128,epochs=300)
-
-
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-imgplot = plt.imshow(x_train[2].reshape(150,150))
-plt.show()
+history=train_model(model, x_train, y_train,x_test, y_test, batch_size=32,epochs=30,l_r=0.05,beta1=0.9,beta2=0.999)
 
 
 
+"""
+refs: 
+https://machinelearningmastery.com/how-to-calculate-precision-recall-f1-and-more-for-deep-learning-models/
+"""
 
 
 
