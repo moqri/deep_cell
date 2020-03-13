@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 """
-Created on Fri Feb 14 17:04:24 2020
-
-@author: Mustafa
+Sierra Lear
+Mustafa Hajij
+Mahdi Moqri
 """
 
 """
