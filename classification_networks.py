@@ -2,7 +2,12 @@
 """
 Created on Fri Feb 14 17:04:24 2020
 
-@author: steve
+@author: Mustafa
+"""
+
+"""
+refs: 
+https://machinelearningmastery.com/how-to-calculate-precision-recall-f1-and-more-for-deep-learning-models/
 """
 
 import math
@@ -29,6 +34,17 @@ from keras.models import Model
 from sklearn.model_selection import train_test_split
 
 
+# demonstration of calculating metrics for a neural network model using sklearn
+from sklearn.datasets import make_circles
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import confusion_matrix
+
+
 import pickle
 
 #from keras.layers import Input, Dense
@@ -41,7 +57,7 @@ from keras.layers import Conv2D
 
 from keras.layers import Input, Dense
 
-
+from matplotlib import pyplot
 
 def define_model_1(num_classes=3,shape_input=(32, 32, 1)):
 
@@ -143,29 +159,17 @@ def train_model(model, x_train, y_train,x_test, y_test, batch_size=128,epochs=30
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
     plt.show()
-    # summarize history for loss
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
-    plt.title('model loss')
-    plt.ylabel('loss')
-    plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper left')
-    plt.show()
+
     
     print("done training the model")
     score = model.evaluate(x_test, y_test, verbose=0)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
     return history
-    
-    
-
-"""
-
-the following few just loads mnist dataset for testing purposes.
+        
+ 
 
 
-"""    
  
 
 
@@ -182,8 +186,7 @@ def prepare_data(X,y,test_size=0.05):
 
     x_train = x_train.astype('float32')
     x_test = x_test.astype('float32')
-    x_train 
-    x_test 
+    y_test_sklearn=y_test
     print('x_train shape:', x_train.shape)
     print(x_train.shape[0], 'train samples')
     print(x_test.shape[0], 'test samples')
@@ -192,8 +195,50 @@ def prepare_data(X,y,test_size=0.05):
     y_train = keras.utils.to_categorical(y_train, 2)
     y_test = keras.utils.to_categorical(y_test, 2)
     
-    return x_train, y_train, x_test, y_test   
+    return x_train, y_train, x_test, y_test,y_test_sklearn   
+
+
+def get_scores_confusion_matrix_etc(model,x_test,y_test):
     
+    yhat_probs = model.predict(x_test, verbose=0)
+    # predict crisp classes for test set
+    yhat_classes = model.predict_classes(x_test, verbose=0)    
+    # accuracy: (tp + tn) / (p + n)
+    accuracy = accuracy_score(y_test, yhat_classes)
+    print('Accuracy: %f' % accuracy)
+    # precision tp / (tp + fp)
+    precision = precision_score(y_test, yhat_classes)
+    print('Precision: %f' % precision)
+    # recall: tp / (tp + fn)
+    recall = recall_score(y_test, yhat_classes)
+    print('Recall: %f' % recall)
+    # f1: 2 tp / (2 tp + fp + fn)
+    f1 = f1_score(y_test, yhat_classes)
+    print('F1 score: %f' % f1)    
+
+    # kappa
+    kappa = cohen_kappa_score(y_test, yhat_classes)
+    print('Cohens kappa: %f' % kappa)
+    # ROC AUC
+    auc = roc_auc_score(y_test, yhat_probs)
+    print('ROC AUC: %f' % auc)
+    # confusion matrix
+    matrix = confusion_matrix(y_test, yhat_classes)
+    print(matrix)
+
+def plot_loss_accuracy(history):
+    pyplot.subplot(211)
+    pyplot.title('Loss')
+    pyplot.plot(history.history['loss'], label='train')
+    pyplot.plot(history.history['val_loss'], label='test')
+    pyplot.legend()
+    # plot accuracy during training
+    pyplot.subplot(212)
+    pyplot.title('Accuracy')
+    pyplot.plot(history.history['accuracy'], label='train')
+    pyplot.plot(history.history['val_accuracy'], label='test')
+    pyplot.legend()
+    pyplot.show()   
 
 
 """
@@ -209,18 +254,18 @@ the following can be changed as see fit
 folder='C:/CS230/dendritic'
 
 
-with open('C:/CS230/X_Data_all.pkl','rb') as f:
+with open(folder+'/X_Data_all.pkl','rb') as f:
     X_ = pickle.load(f)
     print(X_.shape)
 
-with open('C:/CS230/y_Data_all.pkl','rb') as f:
+with open(folder+'/y_Data_all.pkl','rb') as f:
     y_ = pickle.load(f)
     print(y_.shape)
 
 
 
 
-x_train, y_train, x_test, y_test = prepare_data(X_,y_)
+x_train, y_train, x_test, y_test,y_test_sklearn = prepare_data(X_,y_)
 
 
 #(2) define the model   
@@ -229,36 +274,20 @@ x_train, y_train, x_test, y_test = prepare_data(X_,y_)
 model=define_model_3(num_classes=2,shape_input=(150, 150, 1))
 
 
-# Fit the model
 
 
 
 #(3) fit the model   
 
-history=train_model(model, x_train, y_train,x_test, y_test, batch_size=64,epochs=30,l_r=0.005,beta1=0.9,beta2=0.999)
+history=train_model(model, x_train, y_train,x_test, y_test, batch_size=32,epochs=2,l_r=0.005,beta1=0.9,beta2=0.999)
 
 
-
-"""
-refs: 
-https://machinelearningmastery.com/how-to-calculate-precision-recall-f1-and-more-for-deep-learning-models/
-"""
+#(3) get accurcy,  f1 score, confusion matrix, etc   
 
 
-"""
+plot_loss_accuracy(history)
 
-
-model=define_model_1(num_classes=2,shape_input=(150, 150, 1))
-
-
-
-
-
-history=train_model(model, x_train, y_train,x_test, y_test, batch_size=32,epochs=30,l_r=0.05,beta1=0.9,beta2=0.999)
-
-
-
-"""
+get_scores_confusion_matrix_etc(model,x_test,y_test_sklearn)
 
 
 
