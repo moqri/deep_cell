@@ -187,13 +187,13 @@ pairs,y_=load_point_cloud_from_hd(folder+"dendritic_gene_pairs_200.txt")
 
 X,y=generate_data(expression_df,pairs,y_,s=16,threshold=0.00)
 
-X_=X[:20000]
-y_=y[:20000]
+#X_=X[:20000]
+#y_=y[:20000]
 
 with open(folder+"X_Data_all.pkl",'wb') as f:
     pickle.dump(X_, f)
 
-with open(folder+y_Data_all.pkl",'wb') as f:
+with open(folder+"y_Data_all.pkl",'wb') as f:
     pickle.dump(y_, f)
 
 

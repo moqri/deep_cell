@@ -152,8 +152,8 @@ def train_model(model, x_train, y_train,x_test, y_test, batch_size=128,epochs=30
 
     print(history.history.keys())
     # summarize history for accuracy
-    plt.plot(history.history['accuracy'])
-    plt.plot(history.history['val_accuracy'])
+    plt.plot(history.history['acc'])
+    plt.plot(history.history['val_acc'])
     plt.title('model accuracy')
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
@@ -198,33 +198,51 @@ def prepare_data(X,y,test_size=0.05):
     return x_train, y_train, x_test, y_test,y_test_sklearn   
 
 
-def get_scores_confusion_matrix_etc(model,x_test,y_test):
+def get_scores_confusion_matrix_etc(model,x_test,y_test_sklearn):
     
     yhat_probs = model.predict(x_test, verbose=0)
+    
+    
+    def convert_2_sk_fommat(yhat_probs,y_test_sklearn):
+        out=[]
+        for i in range(0,len(yhat_probs)):
+            if y_test_sklearn[i]==1:
+                
+                out.append(yhat_probs[0][1])
+            else:
+                out.append(yhat_probs[0][0])
+        return out   
+                
+    
     # predict crisp classes for test set
     yhat_classes = model.predict_classes(x_test, verbose=0)    
     # accuracy: (tp + tn) / (p + n)
-    accuracy = accuracy_score(y_test, yhat_classes)
+    accuracy = accuracy_score(y_test_sklearn, yhat_classes)
     print('Accuracy: %f' % accuracy)
     # precision tp / (tp + fp)
-    precision = precision_score(y_test, yhat_classes)
+    precision = precision_score(y_test_sklearn, yhat_classes)
     print('Precision: %f' % precision)
     # recall: tp / (tp + fn)
-    recall = recall_score(y_test, yhat_classes)
+    recall = recall_score(y_test_sklearn, yhat_classes)
     print('Recall: %f' % recall)
     # f1: 2 tp / (2 tp + fp + fn)
-    f1 = f1_score(y_test, yhat_classes)
+    f1 = f1_score(y_test_sklearn, yhat_classes)
     print('F1 score: %f' % f1)    
 
     # kappa
-    kappa = cohen_kappa_score(y_test, yhat_classes)
+    kappa = cohen_kappa_score(y_test_sklearn, yhat_classes)
     print('Cohens kappa: %f' % kappa)
     # ROC AUC
-    auc = roc_auc_score(y_test, yhat_probs)
+    yhat_probs_sklearn=convert_2_sk_fommat(yhat_probs,y_test_sklearn)
+    
+    auc = roc_auc_score(y_test_sklearn, yhat_probs_sklearn)
     print('ROC AUC: %f' % auc)
     # confusion matrix
-    matrix = confusion_matrix(y_test, yhat_classes)
+    print("the confusion matrix : ")
+    matrix = confusion_matrix(y_test_sklearn, yhat_classes)
     print(matrix)
+    
+    return yhat_probs_sklearn, y_test_sklearn,matrix,f1,recall,precision,accuracy
 
 def plot_loss_accuracy(history):
     pyplot.subplot(211)
@@ -235,8 +253,8 @@ def plot_loss_accuracy(history):
     # plot accuracy during training
     pyplot.subplot(212)
     pyplot.title('Accuracy')
-    pyplot.plot(history.history['accuracy'], label='train')
-    pyplot.plot(history.history['val_accuracy'], label='test')
+    pyplot.plot(history.history['acc'], label='train')
+    pyplot.plot(history.history['val_acc'], label='test')
     pyplot.legend()
     pyplot.show()   
 
@@ -275,24 +293,32 @@ model=define_model_3(num_classes=2,shape_input=(150, 150, 1))
 
 
 
-
-
 #(3) fit the model   
 
 history=train_model(model, x_train, y_train,x_test, y_test, batch_size=32,epochs=2,l_r=0.005,beta1=0.9,beta2=0.999)
 
 
-#(3) get accurcy,  f1 score, confusion matrix, etc   
-
+# (4) plot history :
 
 plot_loss_accuracy(history)
 
-get_scores_confusion_matrix_etc(model,x_test,y_test_sklearn)
+
+
+#(5) get accurcy,  f1 score, confusion matrix, etc   
+
+
+
+yhat_probs_sklearn, y_test_sklearn,matrix,f1,recall,precision,accuracy=get_scores_confusion_matrix_etc(model,x_test,y_test_sklearn)
 
 
 
 
+"""
 
+to plot ROC :
+https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html#sphx-glr-auto-examples-model-selection-plot-roc-py    
+
+"""
 
 
 
