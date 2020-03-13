@@ -142,7 +142,7 @@ def train_model(model, x_train, y_train,x_test, y_test, batch_size=128,epochs=30
 
     model.compile(loss=keras.losses.categorical_crossentropy,
                   optimizer=keras.optimizers.Adam(lr=l_r,beta_1=beta1,beta_2=beta2),
-                  metrics=[metrics.categorical_accuracy,metrics.mae])
+                  metrics=["accuracy",metrics.mae])
     print("training the model")
     history=model.fit(x_train, y_train,
               batch_size=batch_size,
@@ -295,7 +295,7 @@ model=define_model_3(num_classes=2,shape_input=(150, 150, 1))
 
 #(3) fit the model   
 
-history=train_model(model, x_train, y_train,x_test, y_test, batch_size=32,epochs=2,l_r=0.005,beta1=0.9,beta2=0.999)
+history=train_model(model, x_test, y_test,x_test, y_test, batch_size=32,epochs=2,l_r=0.005,beta1=0.9,beta2=0.999)
 
 
 # (4) plot history :
