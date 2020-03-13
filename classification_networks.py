@@ -44,6 +44,7 @@ from sklearn.metrics import cohen_kappa_score
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import confusion_matrix
 
+from keras import metrics
 
 import pickle
 
@@ -142,7 +143,7 @@ def train_model(model, x_train, y_train,x_test, y_test, batch_size=128,epochs=30
 
     model.compile(loss=keras.losses.categorical_crossentropy,
                   optimizer=keras.optimizers.Adam(lr=l_r,beta_1=beta1,beta_2=beta2),
-                  metrics=['accuracy'])
+                  metrics=[metrics.categorical_accuracy,metrics.mae])
     print("training the model")
     history=model.fit(x_train, y_train,
               batch_size=batch_size,
